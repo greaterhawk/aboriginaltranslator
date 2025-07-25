@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Speech to Text</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    button { font-size: 1.5em; padding: 1em 2em; }
+    #output { margin-top: 2em; font-size: 1.5em; color: #333; }
+  </style>
+</head>
+<body>
+  <button id="toggleBtn">🎤 Start Listening</button>
+  <div id="output">Waiting...</div>
+
+  <script>
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      document.getElementById("output").innerText = "Speech Recognition not supported on this device.";
+      throw new Error("SpeechRecognition not supported");
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    let isListening = false;
+
+    recognition.onresult = (event) => {
+      const lastResult = event.results[event.results.length - 1];
+      const transcript = lastResult[0].transcript.trim();
+      document.getElementById("output").innerText = `You said: "${transcript}"`;
+    };
+
+    recognition.onerror = (event) => {
+      document.getElementById("output").innerText = `Error: ${event.error}`;
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        recognition.start(); // keep listening
+      }
+    };
+
+    document.getElementById("toggleBtn").addEventListener("click", () => {
+      if (!isListening) {
+        recognition.start();
+        isListening = true;
+        document.getElementById("toggleBtn").innerText = "🛑 Stop Listening";
+        document.getElementById("output").innerText = "Listening...";
+      } else {
+        recognition.stop();
+        isListening = false;
+        document.getElementById("toggleBtn").innerText = "🎤 Start Listening";
+        document.getElementById("output").innerText = "Stopped.";
+      }
+    });
+  </script>
+</body>
+</html>
